@@ -4,7 +4,9 @@ apply plugin: "org.jlleitschuh.gradle.ktlint"
 apply plugin: "com.vanniktech.maven.publish"
 
 android {
-    compileSdkVersion libs.versions.targetsdk.get().toInteger()
+    namespace "com.karumi.shot"
+
+    compileSdk = libs.versions.targetsdk.get().toInteger()
     testOptions.unitTests.includeAndroidResources = true
 
     defaultConfig {

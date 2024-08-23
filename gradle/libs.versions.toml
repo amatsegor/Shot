@@ -2,17 +2,17 @@
 minsdk = "21"
 targetsdk = "33"
 java = "11"
-shot = "6.1.0"
+shot = "6.1.1"
 
-android-build-tools = "7.4.2"
+android-build-tools = "8.5.1"
 androidx-test = "1.5.0"
-compose = "1.4.3"
+compose = "1.6.8"
 compose-compiler = "1.4.6"
 espresso = "3.5.1"
 json4s = "4.0.6"
 kodein = "4.1.0"
-kotlin = "1.8.20"
-kotlin-coroutines = "1.6.3"
+kotlin = "1.9.21"
+kotlin-coroutines = "1.8.1"
 lifecycle = "2.6.1"
 
 [libraries]
@@ -76,7 +76,7 @@ ktlint-gradle-plugin = {module = "org.jlleitschuh.gradle:ktlint-gradle", version
 scalafmt-gradle-plugin = {module = "gradle.plugin.cz.alenkacz:gradle-scalafmt", version = "1.16.2"}
 scalatest-gradle-plugin = {module = "gradle.plugin.com.github.maiflai:gradle-scalatest", version = "0.32"}
 shot-gradle-plugin = {module = "com.karumi:shot", version.ref = "shot"}
-vanniktech-publish-gradle-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.18.0" }
+vanniktech-publish-gradle-plugin = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.29.0" }
 
 [bundles]
 androidx-test = ["androidx-espresso-core", "androidx-espresso-contrib", "androidx-espresso-intents", "androidx-test-core", "androidx-test-junit-ext", "androidx-test-rules", "androidx-test-runner"]
