@@ -2,7 +2,8 @@ package com.karumi.shot.screenshots
 
 import com.karumi.shot.base64.Base64Encoder
 import com.karumi.shot.domain.model.ScreenshotComparisionErrors
-import com.karumi.shot.domain.{DifferentScreenshots, ScreenshotsComparisionResult}
+import com.karumi.shot.domain.DifferentScreenshots
+import com.karumi.shot.domain.ScreenshotsComparisionResult
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.composite.RedComposite
 import com.sksamuel.scrimage.nio.PngWriter
@@ -14,17 +15,17 @@ import scala.collection.parallel.CollectionConverters._
 class ScreenshotsDiffGenerator(base64Encoder: Base64Encoder) {
 
   def generateDiffs(
-      comparision: ScreenshotsComparisionResult,
+      comparison: ScreenshotsComparisionResult,
       outputFolder: String,
       generateBase64Diff: Boolean
   ): ScreenshotsComparisionResult = {
     val updatedErrors: ScreenshotComparisionErrors =
-      comparision.errors.par.map {
+      comparison.errors.par.map {
         case error: DifferentScreenshots =>
           generateDiff(error, outputFolder, generateBase64Diff)
         case anyOtherError => anyOtherError
       }.seq
-    comparision.copy(errors = updatedErrors)
+    comparison.copy(errors = updatedErrors)
   }
 
   private def generateDiff(
@@ -47,6 +48,11 @@ class ScreenshotsDiffGenerator(base64Encoder: Base64Encoder) {
     val diff           = newImage.composite(new RedComposite(1d), originalImage)
     val outputFilePath = screenshot.getDiffScreenshotPath(outputFolder)
     diff.output(PngWriter.MaxCompression, outputFilePath)
+
+    originalImage.awt().flush()
+    newImage.awt().flush()
+    diff.awt().flush()
+
     if (generateBase64Diff) {
       error.copy(base64Diff = base64Encoder.base64FromFile(outputFilePath))
     } else {

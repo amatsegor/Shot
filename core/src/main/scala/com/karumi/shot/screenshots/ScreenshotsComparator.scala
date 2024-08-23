@@ -1,17 +1,16 @@
 package com.karumi.shot.screenshots
 
-import java.io.File
-
 import com.karumi.shot.domain._
 import com.karumi.shot.domain.model.ScreenshotsSuite
 import com.sksamuel.scrimage.ImmutableImage
+
+import java.io.File
 import scala.collection.parallel.CollectionConverters._
 
 class ScreenshotsComparator {
 
   def compare(screenshots: ScreenshotsSuite, tolerance: Double): ScreenshotsComparisionResult = {
-    val errors =
-      screenshots.par.flatMap(compareScreenshot(_, tolerance)).toList
+    val errors = screenshots.par.flatMap(compareScreenshot(_, tolerance)).toList
     ScreenshotsComparisionResult(errors, screenshots)
   }
 
@@ -20,21 +19,26 @@ class ScreenshotsComparator {
       tolerance: Double
   ): Option[ScreenshotComparisonError] = {
     val recordedScreenshotFile = new File(screenshot.recordedScreenshotPath)
+
     if (!recordedScreenshotFile.exists()) {
       Some(ScreenshotNotFound(screenshot))
     } else {
-      val oldScreenshot =
-        ImmutableImage.loader().fromFile(recordedScreenshotFile)
+      val oldScreenshot = ImmutableImage.loader().fromFile(recordedScreenshotFile)
       val newScreenshot = ScreenshotComposer.composeNewScreenshot(screenshot)
-      if (!haveSameDimensions(newScreenshot, oldScreenshot)) {
-        val originalDimension =
-          Dimension(oldScreenshot.width, oldScreenshot.height)
-        val newDimension = Dimension(newScreenshot.width, newScreenshot.height)
-        Some(DifferentImageDimensions(screenshot, originalDimension, newDimension))
-      } else if (imagesAreDifferent(screenshot, oldScreenshot, newScreenshot, tolerance)) {
-        Some(DifferentScreenshots(screenshot))
-      } else {
-        None
+
+      try {
+        if (!haveSameDimensions(newScreenshot, oldScreenshot)) {
+          val originalDimension = Dimension(oldScreenshot.width, oldScreenshot.height)
+          val newDimension      = Dimension(newScreenshot.width, newScreenshot.height)
+          Some(DifferentImageDimensions(screenshot, originalDimension, newDimension))
+        } else if (imagesAreDifferent(screenshot, oldScreenshot, newScreenshot, tolerance)) {
+          Some(DifferentScreenshots(screenshot))
+        } else {
+          None
+        }
+      } finally {
+        oldScreenshot.awt.flush()
+        newScreenshot.awt.flush()
       }
     }
   }

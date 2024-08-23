@@ -26,7 +26,10 @@ object ScreenshotComposer {
         val part      = ImmutableImage.loader().fromFile(partFile).awt
         val xPosition = x * tileSize
         val yPosition = y * tileSize
-        composedImage = composedImage.overlay(new AwtImage(part), xPosition, yPosition)
+        val newComposedImage = composedImage.overlay(new AwtImage(part), xPosition, yPosition)
+        composedImage.awt().flush()
+        part.flush()
+        composedImage = newComposedImage
         partIndex += 1
       }
       composedImage

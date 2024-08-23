@@ -18,7 +18,7 @@ class ScreenshotsSaver {
     saveScreenshots(screenshots, to)
   }
 
-  private def saveScreenshots(screenshots: ScreenshotsSuite, folder: Folder) = {
+  private def saveScreenshots(screenshots: ScreenshotsSuite, folder: Folder): Unit = {
     val screenshotsFolder = new File(folder)
     if (!screenshotsFolder.exists()) {
       screenshotsFolder.mkdirs()
@@ -30,6 +30,7 @@ class ScreenshotsSaver {
       }
       val image = ScreenshotComposer.composeNewScreenshot(screenshot)
       image.output(PngWriter.MaxCompression, outputFile)
+      image.awt().flush()
     }
   }
 
@@ -45,7 +46,7 @@ class ScreenshotsSaver {
       projectName: String,
       reportFolder: String,
       shotFolder: ShotFolder
-  ) = {
+  ): Unit = {
     deleteOldTemporalScreenshots(projectName, shotFolder)
     saveScreenshots(screenshots, shotFolder.screenshotsTemporalBuildPath() + "/")
     deleteFile(reportFolder)
@@ -59,7 +60,7 @@ class ScreenshotsSaver {
   def copyRecordedScreenshotsToTheReportFolder(
       from: FilePath,
       to: FilePath
-  ) = {
+  ): Unit = {
     FileUtils.copyDirectory(new File(from), new File(to))
     deleteFile(to)
   }
@@ -82,8 +83,7 @@ class ScreenshotsSaver {
       screenshotsResult: ScreenshotsComparisionResult
   ): Unit =
     screenshotsResult.correctScreenshots.foreach(screenshot =>
-      deleteFile(verificationReferenceImagesFolder + screenshot.fileName)
-    )
+      deleteFile(verificationReferenceImagesFolder + screenshot.fileName))
 
   def getScreenshotDimension(
       shotFolder: ShotFolder,
@@ -92,7 +92,11 @@ class ScreenshotsSaver {
     val screenshotPath = shotFolder
       .pulledScreenshotsFolder() + screenshot.name + ".png"
     val image = ImmutableImage.loader().fromFile(new File(screenshotPath))
-    Dimension(image.width, image.height)
+
+    val dimension = Dimension(image.width, image.height)
+    image.awt().flush()
+
+    dimension
   }
 
 }
