@@ -2,14 +2,14 @@ package com.karumi.shot
 
 import com.karumi.shot.android.Adb
 import com.karumi.shot.domain._
-import com.karumi.shot.domain.model.{AppId, FilePath, Folder, ScreenshotsSuite}
+import com.karumi.shot.domain.model.AppId
+import com.karumi.shot.domain.model.ScreenshotsSuite
 import com.karumi.shot.json.ScreenshotsComposeSuiteJsonParser
-import com.karumi.shot.reports.{ConsoleReporter, HtmlExecutionReporter, ExecutionReporter}
-import com.karumi.shot.screenshots.{
-  ScreenshotsComparator,
-  ScreenshotsDiffGenerator,
-  ScreenshotsSaver
-}
+import com.karumi.shot.reports.ConsoleReporter
+import com.karumi.shot.reports.ExecutionReporter
+import com.karumi.shot.screenshots.ScreenshotsComparator
+import com.karumi.shot.screenshots.ScreenshotsDiffGenerator
+import com.karumi.shot.screenshots.ScreenshotsSaver
 import com.karumi.shot.system.EnvVars
 import com.karumi.shot.ui.Console
 import com.karumi.shot.xml.ScreenshotsSuiteJsonParser._
@@ -18,13 +18,11 @@ import org.tinyzip.TinyZip
 
 import java.io.File
 import java.nio.file.Paths
-import scala.collection.convert.ImplicitConversions.{
-  `collection AsScalaIterable`,
-  `collection asJava`
-}
+import scala.Console.YELLOW
+import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import scala.collection.convert.ImplicitConversions.`collection asJava`
 import scala.collection.immutable.Stream.Empty
 import scala.collection.parallel.CollectionConverters._
-import scala.Console.YELLOW
 
 class Shot(
     adb: Adb,
@@ -54,10 +52,13 @@ class Shot(
     } else {
       val screenshots = regularScreenshotSuite.get ++ composeScreenshotSuite.get
       console.show("😃  Screenshots recorded and saved at: " + shotFolder.screenshotsFolder())
-      for (reporter <- reporters)
+
+      for (reporter <- reporters) {
         reporter.generateRecordReport(appId, screenshots, shotFolder)
+      }
+
       console.show(
-        "🤓  You can review the execution report here: " + shotFolder.reportFolder() + "index.html"
+        s"🤓  You can review the execution report here: ${shotFolder.recordingReportFolder()}index.html"
       )
       removeProjectTemporalScreenshotsFolder(shotFolder)
     }
@@ -130,8 +131,7 @@ class Shot(
           showOnlyFailingTestsInReports
         )
       console.show(
-        "🤓  You can review the execution report here: " + shotFolder
-          .verificationReportFolder() + "index.html"
+        s"🤓  You can review the execution report here: ${shotFolder.verificationReportFolder()}index.html"
       )
       removeProjectTemporalScreenshotsFolder(shotFolder)
       comparison
@@ -274,8 +274,7 @@ class Shot(
       val filesInScreenshotFolder = folder.listFiles
       val metadataFiles =
         filesInScreenshotFolder.filter(file =>
-          file.getAbsolutePath.contains(shotFolder.composeMetadataFileName())
-        )
+          file.getAbsolutePath.contains(shotFolder.composeMetadataFileName()))
       val screenshotSuite = metadataFiles.flatMap { metadataFilePath =>
         val metadataFileContent = files.read(metadataFilePath.getAbsolutePath)
         ScreenshotsComposeSuiteJsonParser.parseScreenshotSuite(
