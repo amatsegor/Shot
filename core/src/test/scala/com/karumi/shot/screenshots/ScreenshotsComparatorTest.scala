@@ -1,8 +1,10 @@
 package com.karumi.shot.screenshots
 
 import com.karumi.shot.Resources
-import com.karumi.shot.domain.{Dimension, Screenshot}
 import com.karumi.shot.domain.model.ScreenshotsSuite
+import com.karumi.shot.domain.Dimension
+import com.karumi.shot.domain.Screenshot
+import com.karumi.shot.ui.Console
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -29,7 +31,7 @@ class ScreenshotsComparatorTest extends AnyFlatSpec with should.Matchers with Re
     )
     val suite: ScreenshotsSuite = List(screenshot)
 
-    val result = comparator.compare(suite, 0.01)
+    val result = comparator.compare(suite, 0.01, new Console)
 
     result.hasErrors shouldBe true
   }

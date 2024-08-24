@@ -74,9 +74,12 @@ class Shot(
       orchestrated: Boolean
   ): ScreenshotsComparisionResult = {
     console.show("🔎  Comparing screenshots with previous ones.")
+
     moveComposeScreenshotsToRegularScreenshotsFolder(shotFolder, orchestrated)
+
     val regularScreenshots = readScreenshotsMetadata(shotFolder)
     val composeScreenshots = readComposeScreenshotsMetadata(shotFolder)
+
     if (regularScreenshots.isEmpty && composeScreenshots.isEmpty) {
       console.showWarning(
         "🤔 We couldn't find any screenshot. Did you configure Shot properly and added your tests to your project? https://github.com/pedrovgs/Shot/#getting-started"
@@ -91,7 +94,7 @@ class Shot(
         newScreenshotsVerificationReportFolder,
         shotFolder
       )
-      val comparison = screenshotsComparator.compare(screenshots, tolerance)
+      val comparison = screenshotsComparator.compare(screenshots, tolerance, console)
       val updatedComparison = screenshotsDiffGenerator.generateDiffs(
         comparison,
         newScreenshotsVerificationReportFolder,
