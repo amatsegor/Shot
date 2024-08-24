@@ -71,6 +71,7 @@ class Shot(
       shouldPrintBase64Error: Boolean,
       tolerance: Double,
       showOnlyFailingTestsInReports: Boolean,
+      parallelThreads: Int,
       orchestrated: Boolean
   ): ScreenshotsComparisionResult = {
     console.show("🔎  Comparing screenshots with previous ones.")
@@ -94,7 +95,7 @@ class Shot(
         newScreenshotsVerificationReportFolder,
         shotFolder
       )
-      val comparison = screenshotsComparator.compare(screenshots, tolerance, console)
+      val comparison = screenshotsComparator.compare(screenshots, tolerance, parallelThreads, console)
       val updatedComparison = screenshotsDiffGenerator.generateDiffs(
         comparison,
         newScreenshotsVerificationReportFolder,

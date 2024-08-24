@@ -4,17 +4,21 @@ import com.android.builder.model.BuildType
 import com.karumi.shot.android.Adb
 import com.karumi.shot.base64.Base64Encoder
 import com.karumi.shot.domain.ShotFolder
-import com.karumi.shot.reports.{ConsoleReporter, HtmlExecutionReporter, JunitExecutionReporter}
-import com.karumi.shot.screenshots.{
-  ScreenshotsComparator,
-  ScreenshotsDiffGenerator,
-  ScreenshotsSaver
-}
+import com.karumi.shot.reports.ConsoleReporter
+import com.karumi.shot.reports.HtmlExecutionReporter
+import com.karumi.shot.reports.JunitExecutionReporter
+import com.karumi.shot.screenshots.ScreenshotsComparator
+import com.karumi.shot.screenshots.ScreenshotsDiffGenerator
+import com.karumi.shot.screenshots.ScreenshotsSaver
 import com.karumi.shot.system.EnvVars
 import com.karumi.shot.ui.Console
-import com.karumi.shot.{Files, Shot, ShotExtension}
-import org.gradle.api.tasks.{Input, TaskAction}
-import org.gradle.api.{DefaultTask, GradleException}
+import com.karumi.shot.Files
+import com.karumi.shot.Shot
+import com.karumi.shot.ShotExtension
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 
 import java.io.File
 
@@ -84,6 +88,8 @@ class ExecuteScreenshotTests extends ShotTask {
   def executeScreenshotTests(): Unit = {
     val tolerance                     = shotExtension.tolerance
     val showOnlyFailingTestsInReports = shotExtension.showOnlyFailingTestsInReports
+    val parallelThreads             = shotExtension.parallelThreads
+
     if (recordScreenshots) {
       shot.recordScreenshots(appId, shotFolder, orchestrated)
     } else {
@@ -94,6 +100,7 @@ class ExecuteScreenshotTests extends ShotTask {
         printBase64,
         tolerance,
         showOnlyFailingTestsInReports,
+        parallelThreads,
         orchestrated
       )
       if (result.hasErrors) {

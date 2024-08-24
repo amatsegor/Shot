@@ -6,6 +6,9 @@ import com.karumi.shot.ui.Console
 import com.sksamuel.scrimage.ImmutableImage
 
 import java.io.File
+import java.util.concurrent.ForkJoinPool
+import scala.collection.parallel.CollectionConverters.seqIsParallelizable
+import scala.collection.parallel.ForkJoinTaskSupport
 import scala.math.BigDecimal.RoundingMode
 
 class ScreenshotsComparator {
@@ -14,16 +17,32 @@ class ScreenshotsComparator {
 
   def compare(screenshots: ScreenshotsSuite,
               tolerance: Double,
+              parallelThreads: Int,
               console: Console): ScreenshotsComparisionResult = {
-    console.showWarning("Comparing screenshots in a sequential mode, this could take a while...")
 
-    val errors = screenshots.flatMap(compareScreenshot(_, tolerance)).toList
+    if (parallelThreads <= 0) {
+      throw new IllegalArgumentException("The number of parallel threads must be greater than 0")
+    }
+
+    val errors = if (parallelThreads > 1) {
+      console.showWarning(
+        "Comparing screenshots in a parallel mode, using " + parallelThreads + " threads")
+
+      val parScreenshots = screenshots.par
+      parScreenshots.tasksupport = new ForkJoinTaskSupport(new ForkJoinPool(parallelThreads))
+      parScreenshots.flatMap(compareScreenshot(_, tolerance, console)).toList
+    } else {
+      console.showWarning("Comparing screenshots in a sequential mode")
+      screenshots.flatMap(compareScreenshot(_, tolerance, console)).toList
+    }
+
     ScreenshotsComparisionResult(errors, screenshots)
   }
 
   private def compareScreenshot(
       screenshot: Screenshot,
-      tolerance: Double
+      tolerance: Double,
+      console: Console
   ): Option[ScreenshotComparisonError] = {
     val recordedScreenshotFile = new File(screenshot.recordedScreenshotPath)
 
@@ -38,7 +57,7 @@ class ScreenshotsComparator {
           val originalDimension = Dimension(oldScreenshot.width, oldScreenshot.height)
           val newDimension      = Dimension(newScreenshot.width, newScreenshot.height)
           Some(DifferentImageDimensions(screenshot, originalDimension, newDimension))
-        } else if (imagesAreDifferent(screenshot, oldScreenshot, newScreenshot, tolerance)) {
+        } else if (imagesAreDifferent(screenshot, oldScreenshot, newScreenshot, tolerance, console)) {
           Some(DifferentScreenshots(screenshot))
         } else {
           None
@@ -54,7 +73,8 @@ class ScreenshotsComparator {
       screenshot: Screenshot,
       oldScreenshot: ImmutableImage,
       newScreenshot: ImmutableImage,
-      tolerance: Double
+      tolerance: Double,
+      console: Console
   ): Boolean = {
     if (oldScreenshot == newScreenshot) {
       false
@@ -73,9 +93,8 @@ class ScreenshotsComparator {
       val imagesAreDifferent        = percentageOutOf100 > tolerance
       val imagesAreConsideredEquals = !imagesAreDifferent
       if (imagesAreConsideredEquals && tolerance != Config.defaultTolerance) {
-        val screenshotName = screenshot.name
-        println(
-          Console.YELLOW + s"⚠️   Shot warning: There are some pixels changed in the screenshot named $screenshotName, but we consider the comparison correct because tolerance is configured to $tolerance % and the percentage of different pixels is $percentageOutOf100 %" + Console.RESET
+        console.showWarning(
+          s"⚠️   Shot warning: Screenshot named ${screenshot.name} ${Console.GREEN}passed${Console.YELLOW} with difference of $percentageOutOf100%, because tolerance is $tolerance%"
         )
       }
 

@@ -1,6 +1,7 @@
 package com.karumi.shot
 
 import com.karumi.shot.domain.Config
+
 import scala.beans.BeanProperty
 
 object ShotExtension {
@@ -12,9 +13,10 @@ class ShotExtension(
     @BeanProperty var useComposer: Boolean,
     @BeanProperty var tolerance: Double,
     @BeanProperty var showOnlyFailingTestsInReports: Boolean,
-    @BeanProperty var applicationId: String
+    @BeanProperty var applicationId: String,
+    @BeanProperty var parallelThreads: Int
 ) {
 
-  def this() = this(true, false, Config.defaultTolerance, false, "")
+  def this() = this(true, false, Config.defaultTolerance, false, "", Runtime.getRuntime.availableProcessors())
 
 }

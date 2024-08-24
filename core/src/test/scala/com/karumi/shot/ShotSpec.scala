@@ -237,7 +237,8 @@ class ShotSpec
       shouldPrintBase64Error = false,
       0d,
       showOnlyFailingTestsInReports = false,
-      orchestrated = false
+      orchestrated = false,
+      parallelThreads = 2
     )
   }
 
