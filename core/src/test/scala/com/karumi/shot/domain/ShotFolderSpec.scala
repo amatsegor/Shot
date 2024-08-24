@@ -1,7 +1,7 @@
 package com.karumi.shot.domain
 
-import org.scalatest.funspec._
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.funspec.*
+import org.scalatest.matchers.should.Matchers.shouldBe
 
 class ShotFolderSpec extends AnyFunSpec {
 

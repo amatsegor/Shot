@@ -1,7 +1,7 @@
 package com.karumi.shot.screenshots
 
 import com.karumi.shot.domain.model.{FilePath, Folder, ScreenshotsSuite}
-import com.karumi.shot.domain.{Dimension, Screenshot, ScreenshotsComparisionResult, ShotFolder}
+import com.karumi.shot.domain.{Dimension, Screenshot, ScreenshotsComparisonResult, ShotFolder}
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.PngWriter
 import org.apache.commons.io.FileUtils
@@ -67,7 +67,7 @@ class ScreenshotsSaver {
 
   def copyOnlyFailingRecordedScreenshotsToTheReportFolder(
       destinyFolder: Folder,
-      screenshotsResult: ScreenshotsComparisionResult
+      screenshotsResult: ScreenshotsComparisonResult
   ): Unit = {
     screenshotsResult.errorScreenshots.foreach(copyFile(_, destinyFolder))
     deleteFile(destinyFolder)
@@ -80,7 +80,7 @@ class ScreenshotsSaver {
 
   def removeNonFailingReferenceImages(
       verificationReferenceImagesFolder: Folder,
-      screenshotsResult: ScreenshotsComparisionResult
+      screenshotsResult: ScreenshotsComparisonResult
   ): Unit =
     screenshotsResult.correctScreenshots.foreach(screenshot =>
       deleteFile(verificationReferenceImagesFolder + screenshot.fileName))

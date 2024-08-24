@@ -1,7 +1,7 @@
 package com.karumi.shot
 
 import com.karumi.shot.android.Adb
-import com.karumi.shot.domain._
+import com.karumi.shot.domain.*
 import com.karumi.shot.domain.model.AppId
 import com.karumi.shot.domain.model.ScreenshotsSuite
 import com.karumi.shot.json.ScreenshotsComposeSuiteJsonParser
@@ -12,17 +12,15 @@ import com.karumi.shot.screenshots.ScreenshotsDiffGenerator
 import com.karumi.shot.screenshots.ScreenshotsSaver
 import com.karumi.shot.system.EnvVars
 import com.karumi.shot.ui.Console
-import com.karumi.shot.xml.ScreenshotsSuiteJsonParser._
+import com.karumi.shot.xml.ScreenshotsSuiteJsonParser.*
 import org.apache.commons.io.FileUtils
 import org.tinyzip.TinyZip
 
 import java.io.File
 import java.nio.file.Paths
 import scala.Console.YELLOW
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
-import scala.collection.convert.ImplicitConversions.`collection asJava`
-import scala.collection.immutable.Stream.Empty
-import scala.collection.parallel.CollectionConverters._
+import scala.collection.parallel.CollectionConverters.*
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class Shot(
     adb: Adb,
@@ -73,7 +71,7 @@ class Shot(
       showOnlyFailingTestsInReports: Boolean,
       parallelThreads: Int,
       orchestrated: Boolean
-  ): ScreenshotsComparisionResult = {
+  ): ScreenshotsComparisonResult = {
     console.show("🔎  Comparing screenshots with previous ones.")
 
     moveComposeScreenshotsToRegularScreenshotsFolder(shotFolder, orchestrated)
@@ -85,7 +83,7 @@ class Shot(
       console.showWarning(
         "🤔 We couldn't find any screenshot. Did you configure Shot properly and added your tests to your project? https://github.com/pedrovgs/Shot/#getting-started"
       )
-      ScreenshotsComparisionResult()
+      ScreenshotsComparisonResult()
     } else {
       val screenshots                            = regularScreenshots.get ++ composeScreenshots.get
       val newScreenshotsVerificationReportFolder = shotFolder.verificationReportFolder() + "images/"
@@ -150,15 +148,16 @@ class Shot(
       orchestrated: Boolean
   ): Unit = {
     val composeFolder            = shotFolder.pulledComposeScreenshotsFolder()
-    var fileList: Iterable[File] = Empty
+    var fileList: Iterable[File] = LazyList()
     if (orchestrated) {
       val orchestratedComposeFolder = shotFolder.pulledComposeOrchestratedScreenshotsFolder()
-      fileList =
-        files.listFilesInFolder(composeFolder) ++ files.listFilesInFolder(orchestratedComposeFolder)
+      fileList = files
+        .listFilesInFolder(composeFolder)
+        .asScala ++ files.listFilesInFolder(orchestratedComposeFolder).asScala
     } else {
-      fileList = files.listFilesInFolder(composeFolder)
+      fileList = files.listFilesInFolder(composeFolder).asScala
     }
-    fileList.forEach { (file: File) =>
+    fileList.foreach { (file: File) =>
       val rawFilePath = file.getAbsolutePath
       val newFilePath = shotFolder.pulledScreenshotsFolder() + file.getName
       files.rename(rawFilePath, newFilePath)
@@ -225,6 +224,7 @@ class Shot(
 
       files
         .listFilesInFolder(shotFolder.pulledScreenshotsFolder())
+        .asScala
         .filter(file => file.getAbsolutePath.contains(shotFolder.metadataFileName()))
         .foreach(file => {
           val filePath = shotFolder.pulledScreenshotsFolder() + file.getName
@@ -233,6 +233,7 @@ class Shot(
 
       files
         .listFilesInFolder(shotFolder.pulledComposeOrchestratedScreenshotsFolder())
+        .asScala
         .filter(file => file.getAbsolutePath.contains(shotFolder.composeMetadataFileName()))
         .foreach(file => {
           val filePath = shotFolder.pulledComposeOrchestratedScreenshotsFolder() + file.getName

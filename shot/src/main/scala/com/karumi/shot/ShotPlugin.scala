@@ -1,22 +1,28 @@
 package com.karumi.shot
 
+import com.android.build.api.variant.ApplicationVariant
+import com.android.build.api.variant.LibraryVariant
+import com.android.build.api.variant.Variant
+import com.android.build.gradle.AppExtension
+import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.BaseVariant
-import com.android.build.gradle.{AppExtension, LibraryExtension}
-import com.android.builder.model.{BuildType, ProductFlavor}
+import com.android.builder.model.BuildType
+import com.android.builder.model.ProductFlavor
+import com.karumi.shot.VariantExtensions.*
 import com.karumi.shot.domain.Config
 import com.karumi.shot.exceptions.ShotException
-import com.karumi.shot.tasks.{
-  DownloadScreenshotsTask,
-  ExecuteScreenshotTests,
-  ExecuteScreenshotTestsForEveryFlavor,
-  RemoveScreenshotsTask
-}
+import com.karumi.shot.tasks.DownloadScreenshotsTask
+import com.karumi.shot.tasks.ExecuteScreenshotTests
+import com.karumi.shot.tasks.ExecuteScreenshotTestsForEveryFlavor
+import com.karumi.shot.tasks.RemoveScreenshotsTask
 import com.karumi.shot.ui.Console
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.{Plugin, Project}
 
 import scala.util.Try
+
 class ShotPlugin extends Plugin[Project] {
 
   private val console = new Console
@@ -31,10 +37,6 @@ class ShotPlugin extends Plugin[Project] {
     }
   }
 
-  private def configureAdb(project: Project): Unit = {
-    val adbPath = AdbPathExtractor.extractPath(project)
-  }
-
   private def findAdbPath(project: Project): String = {
     AdbPathExtractor.extractPath(project)
   }
@@ -47,7 +49,7 @@ class ShotPlugin extends Plugin[Project] {
     }
   }
 
-  private def addTasksToLibraryModule(project: Project) = {
+  private def addTasksToLibraryModule(project: Project): Unit = {
     val libraryExtension =
       getAndroidLibraryExtension(project)
     val baseTask =
@@ -58,13 +60,13 @@ class ShotPlugin extends Plugin[Project] {
     }
   }
 
-  private def addTasksToAppModule(project: Project) = {
-    val appExtension =
-      getAndroidAppExtension(project)
-    val baseTask =
-      project.getTasks
-        .register(Config.defaultTaskName, classOf[ExecuteScreenshotTestsForEveryFlavor])
-    appExtension.getApplicationVariants.all { variant =>
+  private def addTasksToAppModule(project: Project): Unit = {
+    val appExtension = getAndroidAppExtension(project)
+
+    val baseTask = project.getTasks
+      .register(Config.defaultTaskName, classOf[ExecuteScreenshotTestsForEveryFlavor])
+
+    appExtension.getApplicationVariants.forEach { variant =>
       addTaskToVariant(project, baseTask, variant)
     }
   }
@@ -73,7 +75,7 @@ class ShotPlugin extends Plugin[Project] {
       project: Project,
       baseTask: TaskProvider[ExecuteScreenshotTestsForEveryFlavor],
       variant: BaseVariant
-  ) = {
+  ): Unit = {
     val flavor = variant.getMergedFlavor
     checkIfApplicationIdIsConfigured(project, flavor)
     val completeAppId = composeCompleteAppId(project, variant)
@@ -85,26 +87,25 @@ class ShotPlugin extends Plugin[Project] {
   }
 
   private def composeCompleteAppId(project: Project, variant: BaseVariant): String = {
-    val appId =
-      try {
-        variant.getApplicationId
-      } catch {
-        case _: Throwable =>
-          console.showWarning(
-            "Error found trying to get applicationId from library module. We will use the extension applicationId param as a workaround."
-          )
-          console.showWarning(
-            "More information about this AGP7.0.1 bug can be found here: https://github.com/Karumi/Shot/issues/247"
-          )
-          val extension           = project.getExtensions.getByType[ShotExtension](classOf[ShotExtension])
-          val extensionAppIdValue = extension.applicationId
-          console.showWarning(s"Extension applicationId value read = $extensionAppIdValue")
-          extensionAppIdValue
-      }
+    val appId = try {
+      variant.getApplicationId
+    } catch {
+      case _: Throwable =>
+        console.showWarning(
+          "Error found trying to get applicationId from library module. We will use the extension applicationId param as a workaround."
+        )
+        console.showWarning(
+          "More information about this AGP7.0.1 bug can be found here: https://github.com/Karumi/Shot/issues/247"
+        )
+        val extension           = project.getExtensions.getByType[ShotExtension](classOf[ShotExtension])
+        val extensionAppIdValue = extension.applicationId
+        console.showWarning(s"Extension applicationId value read = $extensionAppIdValue")
+        extensionAppIdValue
+    }
     appId + ".test"
   }
 
-  private def checkIfApplicationIdIsConfigured(project: Project, flavor: ProductFlavor) =
+  private def checkIfApplicationIdIsConfigured(project: Project, flavor: ProductFlavor): Unit =
     if (isAnAndroidLibrary(project) && flavor.getTestApplicationId == null) {
       throw ShotException(
         "Your Android library needs to be configured using an testApplicationId in your build.gradle defaultConfig block."
@@ -315,6 +316,21 @@ class ShotPlugin extends Plugin[Project] {
       getAndroidLibraryExtension(project).getTestOptions.getExecution.equalsIgnoreCase(orchestrator)
     } else {
       false
+    }
+  }
+}
+
+object VariantExtensions {
+  extension(variant: Variant) {
+    def applicationId(): String = {
+      variant match {
+        case appVariant: ApplicationVariant => appVariant.getApplicationId.get()
+        case libVariant: LibraryVariant =>
+          throw IllegalArgumentException("Can't get applicationId from a library module")
+        case _ =>
+          throw IllegalArgumentException(
+            s"Unknown variant type: ${variant.getClass.getCanonicalName}")
+      }
     }
   }
 }

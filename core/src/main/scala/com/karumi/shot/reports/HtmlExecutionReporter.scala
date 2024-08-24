@@ -1,7 +1,7 @@
 package com.karumi.shot.reports
 
 import com.karumi.shot.domain._
-import com.karumi.shot.domain.model.{AppId, ScreenshotComparisionErrors, ScreenshotsSuite}
+import com.karumi.shot.domain.model.{AppId, ScreenshotComparisonErrors, ScreenshotsSuite}
 import com.karumi.shot.templates.RecordIndexTemplate.recordIndexTemplate
 import com.karumi.shot.templates.VerificationIndexTemplate.verificationIndexTemplate
 
@@ -23,7 +23,7 @@ class HtmlExecutionReporter extends ExecutionReporter {
   private def writeReport(
       fileContents: String,
       reportFolder: String
-  ) = {
+  ): Unit = {
     val indexFile = new File(reportFolder + "index.html")
     new File(reportFolder).mkdirs()
     val writer = new FileWriter(indexFile)
@@ -73,11 +73,11 @@ class HtmlExecutionReporter extends ExecutionReporter {
   }
 
   def generateVerificationReport(
-      appId: AppId,
-      comparision: ScreenshotsComparisionResult,
-      shotFolder: ShotFolder,
-      showOnlyFailingTestsInReports: Boolean = false
-  ) = {
+                                  appId: AppId,
+                                  comparision: ScreenshotsComparisonResult,
+                                  shotFolder: ShotFolder,
+                                  showOnlyFailingTestsInReports: Boolean = false
+  ): Unit = {
     val reportFileContents =
       populateVerificationTemplate(appId, comparision, showOnlyFailingTestsInReports)
     resetVerificationReport(shotFolder)
@@ -86,9 +86,9 @@ class HtmlExecutionReporter extends ExecutionReporter {
   }
 
   private def populateVerificationTemplate(
-      appId: AppId,
-      comparision: ScreenshotsComparisionResult,
-      showOnlyFailingTestsInReports: Boolean
+                                            appId: AppId,
+                                            comparision: ScreenshotsComparisonResult,
+                                            showOnlyFailingTestsInReports: Boolean
   ): String = {
     val title         = s"Verification results: $appId"
     val screenshots   = comparision.screenshots
@@ -109,7 +109,7 @@ class HtmlExecutionReporter extends ExecutionReporter {
     )
   }
 
-  private def getSortedByResultScreenshots(comparison: ScreenshotsComparisionResult) =
+  private def getSortedByResultScreenshots(comparison: ScreenshotsComparisonResult) =
     comparison.screenshots
       .map { (screenshot: Screenshot) =>
         val error = findError(screenshot, comparison.errors)
@@ -118,8 +118,8 @@ class HtmlExecutionReporter extends ExecutionReporter {
       .sortBy(_._2.isEmpty)
 
   private def generateVerificationSummaryTableBody(
-      comparision: ScreenshotsComparisionResult,
-      showOnlyFailingTestsInReports: Boolean
+                                                    comparision: ScreenshotsComparisonResult,
+                                                    showOnlyFailingTestsInReports: Boolean
   ): String = {
     getSortedByResultScreenshots(comparision)
       .map { case (screenshot, error) =>
@@ -148,8 +148,8 @@ class HtmlExecutionReporter extends ExecutionReporter {
   }
 
   private def generateScreenshotsTableBody(
-      comparision: ScreenshotsComparisionResult,
-      showOnlyFailingTestsInReports: Boolean
+                                            comparision: ScreenshotsComparisonResult,
+                                            showOnlyFailingTestsInReports: Boolean
   ): String = {
     getSortedByResultScreenshots(comparision)
       .map { case (screenshot, error) =>
@@ -186,13 +186,13 @@ class HtmlExecutionReporter extends ExecutionReporter {
 
   private def findError(
       screenshot: Screenshot,
-      errors: ScreenshotComparisionErrors
+      errors: ScreenshotComparisonErrors
   ): Option[ScreenshotComparisonError] =
     errors.find {
       case ScreenshotNotFound(error)             => screenshot == error
       case DifferentImageDimensions(error, _, _) => screenshot == error
       case DifferentScreenshots(error, _)        => screenshot == error
-      case _                                     => false
+      case null                                     => false
     }
 
   private def generateReasonMessage(error: Option[ScreenshotComparisonError]): String =
@@ -204,7 +204,7 @@ class HtmlExecutionReporter extends ExecutionReporter {
           "<p class='red-text'>🤔  The application UI has been modified.</p>"
         case DifferentImageDimensions(_, _, _) =>
           "<p class='red-text'>📱  The size of the screenshot taken has changed.</p>"
-        case _ =>
+        case null =>
           "<p class='red-text'>😞  Ups! Something went wrong while comparing your screenshots but we couldn't identify the cause. If you think you've found a bug, please open an issue at https://github.com/karumi/shot.</p>"
       }
       .getOrElse("")

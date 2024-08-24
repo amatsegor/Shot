@@ -1,13 +1,15 @@
 package com.karumi.shot.domain
 
-import com.karumi.shot.domain.model.{FilePath, ScreenshotComparisionErrors, ScreenshotsSuite}
+import com.karumi.shot.domain.model.FilePath
+import com.karumi.shot.domain.model.ScreenshotComparisonErrors
+import com.karumi.shot.domain.model.ScreenshotsSuite
 
 object model {
-  type ScreenshotsSuite            = Seq[Screenshot]
-  type FilePath                    = String
-  type Folder                      = String
-  type AppId                       = String
-  type ScreenshotComparisionErrors = Seq[ScreenshotComparisonError]
+  type ScreenshotsSuite           = Seq[Screenshot]
+  type FilePath                   = String
+  type Folder                     = String
+  type AppId                      = String
+  type ScreenshotComparisonErrors = Seq[ScreenshotComparisonError]
 }
 
 object Config {
@@ -60,7 +62,7 @@ case class Screenshot(
 case class Dimension(width: Int, height: Int) {
   val isZero: Boolean = width == 0 && height == 0
 
-  override def toString: FilePath = width + "x" + height
+  override def toString: String = s"${width}x$height"
 }
 
 sealed trait ScreenshotComparisonError {
@@ -83,8 +85,8 @@ case class DifferentImageDimensions(
     newDimension: Dimension
 ) extends ScreenshotComparisonError
 
-case class ScreenshotsComparisionResult(
-    errors: ScreenshotComparisionErrors = Seq(),
+case class ScreenshotsComparisonResult(
+    errors: ScreenshotComparisonErrors = Seq(),
     screenshots: ScreenshotsSuite = Seq()
 ) {
   val hasErrors: Boolean                = errors.nonEmpty

@@ -1,7 +1,7 @@
 package com.karumi.shot.reports
 
 import com.karumi.shot.domain._
-import com.karumi.shot.domain.model.{AppId, ScreenshotComparisionErrors, ScreenshotsSuite}
+import com.karumi.shot.domain.model.{AppId, ScreenshotComparisonErrors, ScreenshotsSuite}
 
 import java.io.{File, FileWriter}
 import scala.language.postfixOps
@@ -15,10 +15,10 @@ class JunitExecutionReporter extends ExecutionReporter {
   ): Unit = ()
 
   def generateVerificationReport(
-      appId: AppId,
-      comparision: ScreenshotsComparisionResult,
-      shotFolder: ShotFolder,
-      showOnlyFailingTestsInReports: Boolean = false
+                                  appId: AppId,
+                                  comparision: ScreenshotsComparisonResult,
+                                  shotFolder: ShotFolder,
+                                  showOnlyFailingTestsInReports: Boolean = false
   ): Unit = {
     val reportFileContents =
       populateVerificationTemplate(appId, comparision)
@@ -47,7 +47,7 @@ class JunitExecutionReporter extends ExecutionReporter {
 
   private def populateVerificationTemplate(
       appId: AppId,
-      comparision: ScreenshotsComparisionResult
+      comparision: ScreenshotsComparisonResult
   ): String = {
     val title = s"Screenshot results: $appId"
     val summaryTableBody =
@@ -66,7 +66,7 @@ class JunitExecutionReporter extends ExecutionReporter {
   }
 
   private def generateVerificationSummaryTableBody(
-      comparisionResult: ScreenshotsComparisionResult
+      comparisionResult: ScreenshotsComparisonResult
   ): String = {
     val groupedScreenshots =
       comparisionResult.screenshots
@@ -106,13 +106,13 @@ class JunitExecutionReporter extends ExecutionReporter {
 
   private def findError(
       screenshot: Screenshot,
-      errors: ScreenshotComparisionErrors
+      errors: ScreenshotComparisonErrors
   ): Option[ScreenshotComparisonError] =
     errors.find {
       case ScreenshotNotFound(error)             => screenshot == error
       case DifferentImageDimensions(error, _, _) => screenshot == error
       case DifferentScreenshots(error, _)        => screenshot == error
-      case _                                     => false
+      case null                                     => false
     }
 
   private def generateReasonMessage(error: Option[ScreenshotComparisonError]): String =
@@ -124,7 +124,7 @@ class JunitExecutionReporter extends ExecutionReporter {
           "The application UI has been modified."
         case DifferentImageDimensions(_, _, _) =>
           "The size of the screenshot taken has changed."
-        case _ =>
+        case null =>
           "Ups! Something went wrong while comparing your screenshots but we couldn't identify the cause. If you think you've found a bug, please open an issue at https://github.com/karumi/shot."
       }
       .getOrElse("")

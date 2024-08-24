@@ -5,7 +5,7 @@ import com.karumi.shot.ui.Console
 
 class ConsoleReporter(console: Console) {
 
-  def showErrors(comparision: ScreenshotsComparisionResult, outputFolder: String): Unit = {
+  def showErrors(comparision: ScreenshotsComparisonResult, outputFolder: String): Unit = {
     console.showError("❌  Hummmm...the following screenshot tests are broken:\n")
     comparision.errors.foreach { error =>
       error match {
@@ -34,7 +34,7 @@ class ConsoleReporter(console: Console) {
           )
         }
 
-        case _ =>
+        case null =>
           console.showError(
             "   😞  Ups! Something went wrong while comparing your screenshots but we couldn't identify the cause. If you think you've found a bug, please open an issue at https://github.com/karumi/shot."
           )
@@ -43,7 +43,7 @@ class ConsoleReporter(console: Console) {
     }
   }
 
-  private def showBase64Diff(screenshot: Screenshot, base64Diff: Option[String]) =
+  private def showBase64Diff(screenshot: Screenshot, base64Diff: Option[String]): Unit =
     base64Diff match {
       case Some(diff) =>
         console.showError(

@@ -1,11 +1,15 @@
 package com.karumi.shot.json
 
-import com.karumi.shot.domain.{Dimension, Screenshot}
-import com.karumi.shot.domain.model.{Folder, ScreenshotsSuite}
-import org.json4s._
-import org.json4s.native.JsonMethods._
+import com.karumi.shot.domain.Dimension
+import com.karumi.shot.domain.Screenshot
+import com.karumi.shot.domain.model.Folder
+import com.karumi.shot.domain.model.ScreenshotsSuite
+import org.json4s.*
+import org.json4s.native.JsonMethods.*
 
 object ScreenshotsComposeSuiteJsonParser {
+
+  implicit val formats: DefaultFormats.type = DefaultFormats
 
   def parseScreenshotSuite(
       metadataJson: String,
@@ -13,7 +17,6 @@ object ScreenshotsComposeSuiteJsonParser {
       temporalScreenshotsFolder: Folder,
       screenshotsTemporalBuildPath: Folder
   ): ScreenshotsSuite = {
-    implicit val formats: DefaultFormats.type = DefaultFormats
 
     val json = parse(metadataJson)
 
@@ -31,7 +34,7 @@ object ScreenshotsComposeSuiteJsonParser {
       temporalScreenshotsFolder: Folder,
       screenshotsTemporalBuildPath: Folder
   ): ScreenshotsSuite = {
-    val JArray(composeScreenshots) = json \ "screenshots"
+    val JArray(composeScreenshots) = (json \ "screenshots").extract[JArray]
 
     composeScreenshots
       .map(parseScreenshot)
@@ -45,19 +48,20 @@ object ScreenshotsComposeSuiteJsonParser {
       )
   }
 
+
   private def parseScreenshot(jsonNode: JsonAST.JValue): ComposeScreenshot = {
-    val JString(name)          = jsonNode \ "name"
-    val JString(testClassName) = jsonNode \ "testClassName"
-    val JString(testName)      = jsonNode \ "testName"
+    val name: String = (jsonNode \ "name").extract[String]
+    val testClassName: String = (jsonNode \ "testClassName").extract[String]
+    val testName: String = (jsonNode \ "testName").extract[String]
 
     ComposeScreenshot(name, testClassName, testName)
   }
 
   private def mapComposeScreenshot(
       screenshot: ComposeScreenshot,
-      screenshotsFolder: Folder,
-      temporalScreenshotsFolder: Folder,
-      screenshotsTemporalBuildPath: Folder
+      screenshotsFolder: String,
+      temporalScreenshotsFolder: String,
+      screenshotsTemporalBuildPath: String
   ): Screenshot = {
     val name = screenshot.name
     Screenshot(

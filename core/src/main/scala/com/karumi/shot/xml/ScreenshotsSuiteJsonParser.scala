@@ -1,14 +1,19 @@
 package com.karumi.shot.xml
 
-import com.karumi.shot.domain.model.{FilePath, Folder, ScreenshotsSuite}
-import com.karumi.shot.domain.{Dimension, Screenshot}
-import org.json4s._
-import org.json4s.native.JsonMethods._
+import com.karumi.shot.domain.Dimension
+import com.karumi.shot.domain.Screenshot
+import com.karumi.shot.domain.model.FilePath
+import com.karumi.shot.domain.model.Folder
+import com.karumi.shot.domain.model.ScreenshotsSuite
+import org.json4s.*
+import org.json4s.native.JsonMethods.*
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 object ScreenshotsSuiteJsonParser {
+
+  implicit val formats: DefaultFormats.type = DefaultFormats
 
   def parseScreenshots(
       metadataJson: String,
@@ -17,7 +22,7 @@ object ScreenshotsSuiteJsonParser {
       screenshotsTemporalBuildPath: Folder
   ): ScreenshotsSuite = {
     val json                    = parse(metadataJson)
-    val JArray(jsonScreenshots) = json
+    val JArray(jsonScreenshots) = json.extract[JArray]
     jsonScreenshots.map(
       parseScreenshot(_, screenshotsFolder, temporalScreenshotsFolder, screenshotsTemporalBuildPath)
     )
@@ -29,32 +34,29 @@ object ScreenshotsSuiteJsonParser {
       temporalScreenshotsFolder: Folder,
       screenshotsTemporalBuildPath: Folder
   ): Screenshot = {
-    val JString(name)          = jsonNode \ "name"
-    val recordedScreenshotPath = screenshotsFolder + name + ".png"
-    val temporalScreenshotPath =
-      screenshotsTemporalBuildPath + "/" + name + ".png"
-    val JString(testClass)                = (jsonNode \ "testClass")
-    val JString(testName)                 = (jsonNode \ "testName")
-    val JInt(tileWidth)                   = (jsonNode \ "tileWidth")
-    val JInt(tileHeight)                  = (jsonNode \ "tileHeight")
-    val tilesDimension                    = Dimension(tileWidth.toInt, tileHeight.toInt)
-    val JString(viewHierarchy)            = (jsonNode \ "viewHierarchy")
-    val JArray(absoluteFileNamesFromJson) = (jsonNode \ "absoluteFilesNames")
+    val name                              = (jsonNode \ "name").extract[String]
+    val recordedScreenshotPath            = screenshotsFolder + name + ".png"
+    val temporalScreenshotPath            = screenshotsTemporalBuildPath + "/" + name + ".png"
+    val testClass                         = (jsonNode \ "testClass").extract[String]
+    val testName                          = (jsonNode \ "testName").extract[String]
+    val tileWidth                         = (jsonNode \ "tileWidth").extract[Int]
+    val tileHeight                        = (jsonNode \ "tileHeight").extract[Int]
+    val viewHierarchy                     = (jsonNode \ "viewHierarchy").extract[String]
+    val JArray(absoluteFileNamesFromJson) = (jsonNode \ "absoluteFilesNames").extract[JArray]
     val absoluteFileNames                 = ListBuffer[String]()
     absoluteFileNamesFromJson.foreach(value => {
-      val JString(fileName) = value
+      val fileName = value.extract[String]
       absoluteFileNames += (fileName + ".png")
     })
-    val JArray(relativeFileNamesFromJson) =
-      (jsonNode \ "relativeFileNames")
+    val JArray(relativeFileNamesFromJson) = (jsonNode \ "relativeFileNames").extract[JArray]
 
     val relativeFileNames = ListBuffer[String]()
     relativeFileNamesFromJson.foreach(value => {
-      val JString(fileName) = value
+      val fileName = value.extract[String]
       relativeFileNames += (fileName + ".png")
     })
 
-    implicit val formats = DefaultFormats
+    val tilesDimension = Dimension(tileWidth.toInt, tileHeight.toInt)
 
     Screenshot(
       name,
@@ -72,16 +74,16 @@ object ScreenshotsSuiteJsonParser {
   }
 
   def parseScreenshotSize(screenshot: Screenshot, viewHierarchyContent: String): Screenshot = {
-    val json                   = parse(viewHierarchyContent)
-    val viewHierarchyNode      = json \ "viewHierarchy"
-    val JInt(screenshotLeft)   = viewHierarchyNode \ "left"
-    val JInt(screenshotWidth)  = viewHierarchyNode \ "width"
-    val JInt(screenshotTop)    = viewHierarchyNode \ "top"
-    val JInt(screenshotHeight) = viewHierarchyNode \ "height"
+    val json              = parse(viewHierarchyContent)
+    val viewHierarchyNode = json \ "viewHierarchy"
+    val screenshotLeft    = (viewHierarchyNode \ "left").extract[Int]
+    val screenshotWidth   = (viewHierarchyNode \ "width").extract[Int]
+    val screenshotTop     = (viewHierarchyNode \ "top").extract[Int]
+    val screenshotHeight  = (viewHierarchyNode \ "height").extract[Int]
     screenshot.copy(
       screenshotDimension = Dimension(
-        screenshotLeft.toInt + screenshotWidth.toInt,
-        screenshotTop.toInt + screenshotHeight.toInt
+        screenshotLeft + screenshotWidth,
+        screenshotTop + screenshotHeight
       )
     )
   }

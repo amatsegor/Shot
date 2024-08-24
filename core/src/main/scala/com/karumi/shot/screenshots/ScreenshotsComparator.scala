@@ -18,7 +18,7 @@ class ScreenshotsComparator {
   def compare(screenshots: ScreenshotsSuite,
               tolerance: Double,
               parallelThreads: Int,
-              console: Console): ScreenshotsComparisionResult = {
+              console: Console): ScreenshotsComparisonResult = {
 
     if (parallelThreads <= 0) {
       throw new IllegalArgumentException("The number of parallel threads must be greater than 0")
@@ -36,7 +36,7 @@ class ScreenshotsComparator {
       screenshots.flatMap(compareScreenshot(_, tolerance, console)).toList
     }
 
-    ScreenshotsComparisionResult(errors, screenshots)
+    ScreenshotsComparisonResult(errors, screenshots)
   }
 
   private def compareScreenshot(

@@ -1,9 +1,9 @@
 package com.karumi.shot.screenshots
 
 import com.karumi.shot.base64.Base64Encoder
-import com.karumi.shot.domain.model.ScreenshotComparisionErrors
+import com.karumi.shot.domain.model.ScreenshotComparisonErrors
 import com.karumi.shot.domain.DifferentScreenshots
-import com.karumi.shot.domain.ScreenshotsComparisionResult
+import com.karumi.shot.domain.ScreenshotsComparisonResult
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.composite.RedComposite
 import com.sksamuel.scrimage.nio.PngWriter
@@ -15,11 +15,11 @@ import scala.collection.parallel.CollectionConverters._
 class ScreenshotsDiffGenerator(base64Encoder: Base64Encoder) {
 
   def generateDiffs(
-      comparison: ScreenshotsComparisionResult,
-      outputFolder: String,
-      generateBase64Diff: Boolean
-  ): ScreenshotsComparisionResult = {
-    val updatedErrors: ScreenshotComparisionErrors =
+                     comparison: ScreenshotsComparisonResult,
+                     outputFolder: String,
+                     generateBase64Diff: Boolean
+  ): ScreenshotsComparisonResult = {
+    val updatedErrors: ScreenshotComparisonErrors =
       comparison.errors.par.map {
         case error: DifferentScreenshots =>
           generateDiff(error, outputFolder, generateBase64Diff)

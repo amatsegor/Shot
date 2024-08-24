@@ -56,8 +56,8 @@ class ShotSpec
     val device: String        = "emulator-5554"
     val orchestrated: Boolean = false
 
-    (adb.devices _).expects().returns(List(device))
-    (envVars.androidSerial _).expects().returns(None)
+    ((() => adb.devices)).expects().returns(List(device))
+    ((() => envVars.androidSerial)).expects().returns(None)
 
     (adb.clearScreenshots _).expects(device, appId, orchestrated)
 
@@ -83,8 +83,8 @@ class ShotSpec
       )
     )
 
-    (adb.devices _).expects().returns(List(device))
-    (envVars.androidSerial _).expects().returns(None)
+    ((() => adb.devices)).expects().returns(List(device))
+    ((() => envVars.androidSerial)).expects().returns(None)
 
     (console.show _).expects(*)
     (adb.pullScreenshots _)
@@ -134,8 +134,8 @@ class ShotSpec
     val device2: String       = "emulator-5556"
     val orchestrated: Boolean = false
 
-    (adb.devices _).expects().returns(List(device1, device2))
-    (envVars.androidSerial _).expects().returns(Some(device2))
+    ((() => adb.devices)).expects().returns(List(device1, device2))
+    ((() => envVars.androidSerial)).expects().returns(Some(device2))
 
     (adb.clearScreenshots _).expects(device2, appId, orchestrated)
 
@@ -162,8 +162,8 @@ class ShotSpec
       )
     )
 
-    (adb.devices _).expects().returns(List(device1, device2))
-    (envVars.androidSerial _).expects().returns(Some(device2))
+    ((() => adb.devices)).expects().returns(List(device1, device2))
+    ((() => envVars.androidSerial)).expects().returns(Some(device2))
 
     (console.show _).expects(*)
     (adb.pullScreenshots _)
@@ -210,8 +210,8 @@ class ShotSpec
     val device2: String       = "emulator-5556"
     val orchestrated: Boolean = false
 
-    (adb.devices _).expects().returns(List(device1, device2))
-    (envVars.androidSerial _).expects().returns(Some("another emulator"))
+    ((() => adb.devices)).expects().returns(List(device1, device2))
+    ((() => envVars.androidSerial)).expects().returns(Some("another emulator"))
 
     (adb.clearScreenshots _).expects(device1, appId, orchestrated)
     (adb.clearScreenshots _).expects(device2, appId, orchestrated)

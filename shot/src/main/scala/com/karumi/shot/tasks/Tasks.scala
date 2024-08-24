@@ -4,37 +4,34 @@ import com.android.builder.model.BuildType
 import com.karumi.shot.android.Adb
 import com.karumi.shot.base64.Base64Encoder
 import com.karumi.shot.domain.ShotFolder
-import com.karumi.shot.reports.ConsoleReporter
-import com.karumi.shot.reports.HtmlExecutionReporter
-import com.karumi.shot.reports.JunitExecutionReporter
-import com.karumi.shot.screenshots.ScreenshotsComparator
-import com.karumi.shot.screenshots.ScreenshotsDiffGenerator
-import com.karumi.shot.screenshots.ScreenshotsSaver
+import com.karumi.shot.reports.{ConsoleReporter, HtmlExecutionReporter, JunitExecutionReporter}
+import com.karumi.shot.screenshots.{
+  ScreenshotsComparator,
+  ScreenshotsDiffGenerator,
+  ScreenshotsSaver
+}
 import com.karumi.shot.system.EnvVars
 import com.karumi.shot.ui.Console
-import com.karumi.shot.Files
-import com.karumi.shot.Shot
-import com.karumi.shot.ShotExtension
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
+import com.karumi.shot.{Files, Shot, ShotExtension}
+import org.gradle.api.tasks.{Input, TaskAction}
+import org.gradle.api.{DefaultTask, GradleException}
+import scala.compiletime.uninitialized
 
 import java.io.File
 
 abstract class ShotTask extends DefaultTask {
-  @Input var appId: String                   = _
-  @Input var flavor: Option[String]          = _
-  @Input var buildTypeName: String           = _
+  @Input var appId: String                   = uninitialized
+  @Input var flavor: Option[String]          = uninitialized
+  @Input var buildTypeName: String           = uninitialized
   @Input var orchestrated: Boolean           = false
-  @Input var projectPath: String             = _
-  @Input var buildPath: String               = _
-  @Input var shotExtension: ShotExtension    = _
-  @Input var directorySuffix: Option[String] = _
-  @Input var recordScreenshots: Boolean      = _
-  @Input var printBase64: Boolean            = _
-  @Input var projectName: String             = _
-  @Input var adbPath: String                 = _
+  @Input var projectPath: String             = uninitialized
+  @Input var buildPath: String               = uninitialized
+  @Input var shotExtension: ShotExtension    = uninitialized
+  @Input var directorySuffix: Option[String] = uninitialized
+  @Input var recordScreenshots: Boolean      = uninitialized
+  @Input var printBase64: Boolean            = uninitialized
+  @Input var projectName: String             = uninitialized
+  @Input var adbPath: String                 = uninitialized
   protected def shot: Shot = {
     val console = new Console
     new Shot(
@@ -74,10 +71,10 @@ object ShotTask {
 }
 
 object ExecuteScreenshotTests {
-  def name(flavor: Option[String], buildType: BuildType) =
+  def name(flavor: Option[String], buildType: BuildType): String =
     s"${ShotTask.prefixName(flavor, buildType)}ExecuteScreenshotTests"
 
-  def description(flavor: Option[String], buildType: BuildType) =
+  def description(flavor: Option[String], buildType: BuildType): String =
     s"Checks the user interface screenshot tests . If you execute this task using -Precord param the screenshot will be regenerated for the build " +
       s"${ShotTask.prefixName(flavor, buildType)}"
 }
@@ -116,7 +113,7 @@ object DownloadScreenshotsTask {
   def name(flavor: Option[String], buildType: BuildType) =
     s"${ShotTask.prefixName(flavor, buildType)}DownloadScreenshots"
 
-  def description(flavor: Option[String], buildType: BuildType) =
+  def description(flavor: Option[String], buildType: BuildType): String =
     s"Retrieves the screenshots stored into the Android device where the tests were executed for the build " +
       s"${ShotTask.prefixName(flavor, buildType)}"
 }
@@ -129,11 +126,11 @@ class DownloadScreenshotsTask extends ShotTask {
 }
 
 object RemoveScreenshotsTask {
-  def name(flavor: Option[String], buildType: BuildType, beforeExecution: Boolean) =
+  def name(flavor: Option[String], buildType: BuildType, beforeExecution: Boolean): String =
     s"${ShotTask.prefixName(flavor, buildType)}RemoveScreenshots" +
       s"${if (beforeExecution) "Before" else "After"}"
 
-  def description(flavor: Option[String], buildType: BuildType) =
+  def description(flavor: Option[String], buildType: BuildType): String =
     s"Removes the screenshots recorded during the tests execution from the Android device where the tests were executed for the build " +
       s"${ShotTask.prefixName(flavor, buildType)}"
 }
